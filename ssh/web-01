@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Sever-01 login
+
+eval $("ssh-agent")
+ssh-add ~/.ssh/new_system_engineering
+
+ssh ubuntu@3.92.237.7
