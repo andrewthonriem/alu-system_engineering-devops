@@ -1,43 +1,21 @@
 #!/usr/bin/env bash
-# Configure your Nginx server to have a custom 404 page that contains the string Ceci n'est pas une page;
+# Configure Nginx custom 404 page
 
-apt-get update
+# Install nginx
+apt-get update -y
 apt-get install -y nginx
 
-mkdir /etc/nginx/html
+# Create custom 404 page
+echo "Ceci n'est pas une page" > /var/www/html/404.html
 
-touch /etc/nginx/html/index.html
+# Update Nginx default config
+sed -i 's|try_files \$uri \$uri/ =404;|try_files \$uri \$uri/ /404.html;|' /etc/nginx/sites-available/default
 
+# Add error_page directive (if not already present)
+if ! grep -q "error_page 404 /404.html;" /etc/nginx/sites-available/default; then
+    sed -i '/server_name _;/a \    error_page 404 /404.html;' /etc/nginx/sites-available/default
+fi
 
-echo "Holberton School" > /etc/nginx/html/index.html
-echo "Ceci n'est pas une page" > /etc/nginx/html/404.html
-
-
-# Create custom 404 error page
-echo "<!DOCTYPE html>
-<html>
-<head>
-  <title>404 Not Found</title>
-</head>
-<body>
-  <h1>404 Not Found</h1>
-  <p>Ceci n'est pas une page</p>
-</body>
-</html>" | sudo tee /var/www/html/404.html >/dev/nullservice nginx restart
-
-printf %s "server {
-     listen      80 default_server;
-     listen      [::]:80 default_server;
-     root        /etc/nginx/html;
-     index       index.html index.htm;
-     location /redirect_me{
-        return 301 http://youtube.com/;
-     }
-     error_page 404 /404.html;
-     location /404 {
-        root /etc/nginx/html;
-        internal;
-     }
-}
-" > /etc/nginx/sites-available/default
+# Restart nginx
 service nginx restart
+
